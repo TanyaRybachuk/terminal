@@ -1,0 +1,34 @@
+$break-small: 766px;
+$break-large: 767px;
+$only-desk: 1199px;
+$break-large-right: 1200px;
+$break-large-desktop:1600px;
+@mixin to($media) {
+  @if $media == m {
+    @media only screen and (max-width: $break-small) {
+      @content;
+    }
+  } @else if $media == t {
+    @media only screen and (min-width: $break-large) and (max-width: $break-large-right - 1) {
+      @content;
+    }
+  } @else if $media == t-p {
+    @media only screen and (min-width: $break-large) and (max-width: $break-large-right) and (orientation: portrait) {
+      @content;
+    }
+  } @else if $media == t-and-m {
+    @media only screen and (max-width: $break-large-right) {
+      @content;
+    }
+
+  }@else if $media == d-l {
+    @media only screen and (min-width: $break-large-desktop) {
+      @content;
+    }
+  }@else if $media == d {
+    @media only screen and (min-width: $only-desk) {
+      @content;
+    }
+  }
+}
+

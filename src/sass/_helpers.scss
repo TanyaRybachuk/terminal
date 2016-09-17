@@ -1,0 +1,30 @@
+.hide-mob {
+  @include to(m) {
+    display: none;
+  }
+
+}
+.hide-tab {
+  @include to(t) {
+    display: none;
+  }
+}
+.hide-desk {
+  @include to(d) {
+    display: none;
+  }
+}
+.container {
+  max-width: 1175px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.wrap_respond{
+  @include to(t){
+    padding: 0 25px;
+  }
+  @include to(m){
+    padding: 0 20px;
+  }
+}
