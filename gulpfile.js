@@ -1,25 +1,51 @@
 var gulp = require('gulp');
 var sass = require('gulp-sass');
 var browserSync= require('browser-sync');
-// var nunjucks = require('gulp-nunjucks-render');
 var watch = require('gulp-watch');
 var csso = require('gulp-csso');
 var imageop = require('gulp-image-optimization');
-var postcss = require("gulp-postcss");
-var autoprefixer = require('autoprefixer');
-var mqpacker     = require('css-mqpacker');
+// var postcss = require("gulp-postcss");
+var autoprefixer = require('gulp-autoprefixer');
 var data = require('gulp-data');
 var svgSprite  = require('gulp-svg-sprite');
-var handlebars = require('gulp-handlebars');
+var uglify = require('gulp-uglify');
+var handlebars = require('gulp-compile-handlebars');
+// var rename = require('gulp-rename');
+
+/******************************
+ * Default task
+ ******************************/
+
+gulp.task('default', ['server','watch', 'templates', 'sass', 'js', 'copyAssets'], function() {});
 
 
+/******************************
+ * handlebars task
+ ******************************/
 
-gulp.task('templates', function(){
-    gulp.src('pages/*.html')
-        .pipe(handlebars())
-
-        .pipe(gulp.dest('build/'));
+gulp.task('templates', function () {
+    var templateData = {
+            firstName: 'Kaanon'
+        };
+    gulp.src('src/pages/*.html')
+        .pipe(handlebars(templateData, {
+            ignorePartials: true, //ignores the unknown partials
+            partials: {
+                footer: '<footer>the end</footer>'
+            },
+            batch: ['./src/components'],
+            helpers: {
+                capitals: function (str) {
+                    return str.fn(this).toUpperCase();
+                }
+            }
+        }))
+        .pipe(gulp.dest('build'));
 });
+
+/******************************
+ * svg-sprite task
+ ******************************/
 
 config                  = {
     mode                    : {
@@ -36,38 +62,86 @@ gulp.task('svg-sprite', function () {
 });
 
 
-
+/******************************
+ * browserSync task
+ ******************************/
 reload = browserSync.reload;
+gulp.task('server', function() {
+    var files = [
+        'build/*.html',
+        'build/js/*.js',
+        'build/css/*.css'
+    ];
 
-
-var processors = [
-    autoprefixer({
-        browsers: ['last 4 versions'],
-        cascade: false
-    }),
-    mqpacker()
-];
-
-gulp.task('js', function () {
-    gulp.src('src/js/*.js')
-
-        // .on('error', function(){notify("Javascript include error");})
-        //.pipe(uglify())
-        .pipe(gulp.dest('build/js'))
-        .pipe(reload({stream: true}));
+    browserSync.init(files, {
+        server: {
+            baseDir: './build'
+        },
+        open: true
+    });
 });
+
+/******************************
+ * sass + prep task
+ ******************************/
 
 gulp.task('sass', function () {
     return gulp.src('src/sass/*.scss')
         .pipe(sass())
-        .pipe(postcss(processors))
+        .pipe(autoprefixer({
+            browsers: ['last 2 versions'],
+            cascade: false
+        }))
+        // .pipe(mqpacker())
         .pipe(csso())
         .pipe(gulp.dest('build/css'));
 
 });
+/******************************
+ * js task
+ ******************************/
+gulp.task('js', function () {
+    gulp.src('src/js/*.js')
 
-gulp.task('svg:sprites', function () {
-    gulp.watch('src/svg-sprite/*.svg', ['svg-sprite']);
+        // .on('error', function(){notify("Javascript include error");})
+        .pipe(uglify())
+        .pipe(gulp.dest('build/js'))
+        .pipe(reload({stream: true}));
+});
+/******************************
+ * img task
+ ******************************/
+gulp.task('images', function(cb) {
+    gulp.src(['src/img/*.png','src/img/*.jpg','src/img/*.gif','src/img/*.jpeg']).pipe(imageop({
+        optimizationLevel: 5,
+        progressive: true,
+        interlaced: true
+    })).pipe(gulp.dest('build/img')).on('end', cb).on('error', cb);
+});
+/******************************
+ * fonts task
+ ******************************/
+gulp.task('fonts', function() {
+    return gulp.src(['src/fonts/**'])
+        .pipe(gulp.dest('build/fonts'));
+});
+/******************************
+ * assets task
+ ******************************/
+
+gulp.task('copyAssets', function () {
+    'use strict';
+    gulp.src([
+        'src/img/*.*'
+    ])
+        .pipe(gulp.dest('build/img'));
+});
+
+/******************************
+ * watch task
+ ******************************/
+gulp.task('img:watch', function () {
+    gulp.watch('src/img/*.*', ['copyAssets']);
 });
 gulp.task('js:watch', function () {
     gulp.watch('src/js/*.js', ['js']);
@@ -76,40 +150,11 @@ gulp.task('js:watch', function () {
 gulp.task('sass:watch', function () {
     gulp.watch('src/sass/*.scss', ['sass']);
 });
-gulp.task('server', function() {
-    browserSync.init({
-        server: {
-            baseDir: "build/"
-        }
-    });
-});
-//  gulp.task('nunjucks', function() {
-//     return gulp.src('src/pages/*.html')
-//         // .pipe(data(function() {
-//         //     return require('../app/data.json')
-//         // }))
-//         .pipe(nunjucks(
-//             {
-//                 path: ['src/'] // String or Array
-//             }
-//         ))
-//         .pipe(gulp.dest('build/'));
-// });
-gulp.task('images', function(cb) {
-    gulp.src(['src/img/*.png','src/img/*.jpg','src/img/*.gif','src/img/*.jpeg']).pipe(imageop({
-        optimizationLevel: 5,
-        progressive: true,
-        interlaced: true
-    })).pipe(gulp.dest('build/img')).on('end', cb).on('error', cb);
-});
-
-gulp.task('fonts', function() {
-    return gulp.src(['src/fonts/**'])
-        .pipe(gulp.dest('build/fonts'));
-});
 
 gulp.task('templates:watch', function () {
     gulp.watch('src/pages/*.html', ['templates']);
+    gulp.watch('src/components/**/*.html', ['templates']);
+
 });
 
 
@@ -119,10 +164,14 @@ gulp.task('watch',
         'sass:watch',
         'templates:watch',
         'js:watch',
-        'svg:sprites'
+        'img:watch'
 
     ]
 );
+
+/******************************
+ * final
+ ******************************/
 gulp.task('build',
     [
         'sass',
@@ -133,4 +182,3 @@ gulp.task('build',
 
     ]
 );
-gulp.task('default', ['server','watch'], function() {});
