@@ -16,7 +16,7 @@ var handlebars = require('gulp-compile-handlebars');
  * Default task
  ******************************/
 
-gulp.task('default', ['server','watch', 'templates', 'sass', 'js', 'copyAssets'], function() {});
+gulp.task('default', ['server','watch', 'templates', 'sass', 'js', 'copyAssets','fonts'], function() {});
 
 
 /******************************

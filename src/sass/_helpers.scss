@@ -18,6 +18,12 @@
   max-width: 1175px;
   margin: 0 auto;
   position: relative;
+  @include to(t){
+    max-width: 100%;
+  }
+  @include to(m){
+    max-width: 100%;
+  }
 }
 
 .wrap_respond{
