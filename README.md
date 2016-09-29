@@ -1,6 +1,4 @@
 #### About
-* 1Cross-browser (Chrome, Firefox, IE9+)
-* BEM methodology
 * Mobile-friendly
 * SCSS
 * Build system GULP
